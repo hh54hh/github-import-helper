@@ -107,7 +107,7 @@ export interface CreateInvoiceInput {
 export async function createInvoice(input: CreateInvoiceInput): Promise<Invoice> {
   if (!input.items.length) throw new Error("لا توجد منتجات في الفاتورة");
 
-  return db.transaction("rw", db.invoices, db.products, db.movements, db.settings, async () => {
+  return db.transaction("rw", [db.invoices, db.products, db.movements, db.settings], async () => {
     // تحقق من المخزون
     for (const item of input.items) {
       const p = await db.products.get(item.productId);
@@ -186,11 +186,7 @@ export interface CreateReturnInput {
 export async function createReturn(input: CreateReturnInput): Promise<ReturnRecord> {
   return db.transaction(
     "rw",
-    db.invoices,
-    db.products,
-    db.movements,
-    db.returns,
-    db.settings,
+    [db.invoices, db.products, db.movements, db.returns, db.settings],
     async () => {
       const inv = await db.invoices.get(input.invoiceId);
       if (!inv) throw new Error("فاتورة غير موجودة");
